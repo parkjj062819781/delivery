@@ -20,7 +20,7 @@ steps:
     name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
-      - '--tag=gcr.io/$PROJECT_ID/${_PROJECT_NAME}:$COMMIT_SHA'
+      - '--tag=gcr.io/$PROJECT_ID/$_PROJECT_NAME:$COMMIT_SHA'
       - '.'
   ### Publish
   - id: 'publish'
@@ -29,7 +29,7 @@ steps:
     args:
       - '-c'
       - |
-        docker push gcr.io/$PROJECT_ID/${_PROJECT_NAME}:$COMMIT_SHA
+        docker push gcr.io/$PROJECT_ID/$_PROJECT_NAME:$COMMIT_SHA
   ### deploy
   ## 아래 방법은 최근 방법으로 deploy 와 service 를 동시에 다음과 같이 배포가 가능하다.
   ## 다만 서비스명은 _PROJECT_NAME_service 로 자동 생성이 되고, LoadBalancer 로 생성이 된다.
@@ -38,8 +38,8 @@ steps:
 #    name: 'gcr.io/cloud-builders/gke-deploy:stable'
 #    args:
 #      - run
-#      - -a=${_PROJECT_NAME}
-#      - --image=gcr.io/$PROJECT_ID/${_PROJECT_NAME}:$COMMIT_SHA
+#      - -a=$_PROJECT_NAME
+#      - --image=gcr.io/$PROJECT_ID/$_PROJECT_NAME:$COMMIT_SHA
 #      - --expose=8080
 #      - --location=$_GKE_LOCATION
 #      - --cluster=$_GKE_CLUSTER
@@ -63,37 +63,37 @@ steps:
         apiVersion: v1
         kind: Service
         metadata:
-          name: ${_PROJECT_NAME}
+          name: $_PROJECT_NAME
           labels:
-            app: ${_PROJECT_NAME}
+            app: $_PROJECT_NAME
         spec:
           ports:
             - port: 8080
               targetPort: 8080
           selector:
-            app: ${_PROJECT_NAME}
+            app: $_PROJECT_NAME
         EOF
 
         cat <<EOF | kubectl apply -f -
         apiVersion: apps/v1
         kind: Deployment
         metadata:
-          name: ${_PROJECT_NAME}
+          name: $_PROJECT_NAME
           labels:
-            app: ${_PROJECT_NAME}
+            app: $_PROJECT_NAME
         spec:
           replicas: 1
           selector:
             matchLabels:
-              app: ${_PROJECT_NAME}
+              app: $_PROJECT_NAME
           template:
             metadata:
               labels:
-                app: ${_PROJECT_NAME}
+                app: $_PROJECT_NAME
             spec:
               containers:
-                - name: ${_PROJECT_NAME}
-                  image: gcr.io/$PROJECT_ID/${_PROJECT_NAME}:$COMMIT_SHA
+                - name: $_PROJECT_NAME
+                  image: gcr.io/$PROJECT_ID/$_PROJECT_NAME:$COMMIT_SHA
                   ports:
                     - containerPort: 8080
         EOF
